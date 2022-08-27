@@ -38,6 +38,14 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=9, choices=USER_CHOICES, default=USER)
 
+    email = models.EmailField(
+        unique=True
+    )
+
+    USERNAME_FIELD = 'email'
+
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+
     def is_admin(self):
         if self.role == "admin":
             return True
