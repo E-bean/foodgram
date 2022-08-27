@@ -1,7 +1,7 @@
-from api.serializers import TagSerializer
 from api.permissions import IsAdminOrSuperuserOrReadOnly
-from recipes.models import Tag
+from api.serializers import TagSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from recipes.models import Tag
 
 
 class TagViewSet(viewsets.ModelViewSet):

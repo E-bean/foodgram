@@ -1,7 +1,9 @@
 import os
-# from api.serializers import UserSerializer
 
 from dotenv import load_dotenv
+
+# from api.serializers import UserSerializer
+
 
 load_dotenv()
 
