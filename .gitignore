@@ -130,3 +130,6 @@ dmypy.json
 
 # .idea
 .idea
+
+# файлы со статикой
+media/
