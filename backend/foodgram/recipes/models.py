@@ -6,27 +6,40 @@ from users.models import User
 class Ingredient(models.Model):
     name = models.CharField(
         max_length=200,
-        unique=True)
+        verbose_name='Название ингредиента',
+    )
     measurement_unit = models.CharField(
         max_length=200,
-        verbose_name='Единица измерения'
+        verbose_name='Единица измерения',
     )
-    amount = models.PositiveIntegerField(
-        verbose_name='Количество',
-        validators=[MinValueValidator(1), ],
-    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_ingredient", fields=["name", "measurement_unit"]
+            )
+        ]
 
     def __str__(self) -> str:
         return self.name
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=200)
-    color = models.CharField(max_length=7)  # HEX код
-    slug = models.SlugField(unique=True)
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+    )
+    color = models.CharField(
+        max_length=7,
+        unique=True
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=200,
+    )
 
-    def __str__(self):
-        return self.slug
+    # def __str__(self):
+    #     return self.slug
 
 
 class Recipe(models.Model):
@@ -35,7 +48,7 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipes',
-        verbose_name='Автор'
+        verbose_name='Автор',
     )
     text = models.TextField(
         verbose_name='Текстовое описание рецепта',
@@ -46,23 +59,48 @@ class Recipe(models.Model):
         auto_now_add=True)
     image = models.ImageField(
         verbose_name='Картинка',
-        upload_to='recipes/',
+        upload_to='recipes/images/',
         blank=True,
         help_text='Загрузите картинку'
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления',
-        help_text='Время приготовления',
+        help_text='Время приготовления в минутах',
         validators=[MinValueValidator(1), ],
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
-        verbose_name='Тег'
+        verbose_name='Тег',
     )
-    favorite_count = models.PositiveIntegerField(
-        verbose_name='Число добавлений в избранное'
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        through='IngredientInRecipe',
+        related_name='recipes'
     )
+
+    def get_ingredients(self):
+        return ",".join([str(i) for i in self.ingredient.all()])
 
     def __str__(self):
         return self.name
+
+
+class IngredientInRecipe(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.PROTECT,
+        related_name='amounts'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='amounts'
+    )
+    amount = models.PositiveIntegerField(
+        verbose_name='Количество',
+        validators=[MinValueValidator(1), ],
+    )
+
+    # def __str__(self) -> str:
+    #     return self.ingredient
