@@ -19,18 +19,19 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
 
 
-class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    name = serializers.StringRelatedField()
-    measurement_unit = serializers.StringRelatedField()
-    amount = serializers.SerializerMethodField()
+# class IngredientInRecipeSerializer(serializers.ModelSerializer):
+#     name = serializers.StringRelatedField()
+#     measurement_unit = serializers.StringRelatedField()
+#     amount = serializers.StringRelatedField()
 
-    class Meta:
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-        model = IngredientInRecipe
+#     class Meta:
+#         fields = ('id', 'name', 'measurement_unit', 'amount')
+#         model = IngredientInRecipe
+#         # fields = ('amount', )
 
-    def get_amount(self, obj):
-        amount = IngredientInRecipe.objects.get(ingredient=obj).amount
-        return amount
+#     # def get_amount(self, obj):
+#     #     amount = IngredientInRecipe.objects.get(ingredient=obj, recipe=obj).amount
+#     #     return amount
 
 
 class Base64ImageField(serializers.ImageField):
@@ -79,15 +80,38 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     image = Base64ImageField()
-    ingredients = IngredientInRecipeSerializer(many=True,)
+    ingredients = IngredientSerializer(many=True,)
 
     class Meta:
         fields = '__all__'
         model = Recipe
 
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     amount = IngredientInRecipe.objects.get(recipe=instance).amount
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        ingredients = instance.ingredients.all()
+        print(ingredients)
+        print(instance)
+        amount = instance.amounts.all()
+        amount_list = []
+        for i in range(len(amount)):
+            i = {
+                'id': ingredients[i].id,
+                'name': ingredients[i].name,
+                'measurement_unit': ingredients[i].measurement_unit,
+                'amount': amount[i].amount
+                }
+            amount_list.append(i)
+        representation['ingredients'] = amount_list
+        return representation
+
+
+class AmountSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    amount = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'amount')
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -97,11 +121,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     )
     author = serializers.CurrentUserDefault()
     image = Base64ImageField()
-    ingredients = IngredientInRecipeSerializer(many=True,)
+    ingredients = AmountSerializer(many=True,)
 
     class Meta:
         fields = (
-            'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time'
+            'id', 'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time'
         )
         model = Recipe
 
@@ -115,11 +139,33 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             recipe.tags.add(tag)
         for value in ingredients:
             ingredient_id = value.get('id')
-            print(value)
-            print(ingredient_id)
             ingredient = Ingredient.objects.get(pk=ingredient_id)
             amount = value.get('amount')
             IngredientInRecipe.objects.create(
                 ingredient=ingredient, recipe=recipe, amount=amount
             )
         return recipe
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['tags'] = []
+        data['ingredients'] = []
+        tags_list = instance.tags.all()
+        ingredient_recipe_qs = instance.ingredients.all()
+        for tag in tags_list:
+            tag_dict = {
+                "id": tag.pk,
+                "name": tag.name,
+                "color": tag.color,
+                "slug": tag.slug,
+            }
+            data['tags'].append(tag_dict)
+        for ingredient in ingredient_recipe_qs:
+            ingredient_dict = {
+                "id": ingredient.pk,
+                "name": ingredient.name,
+                "measurement_unit": ingredient.measurement_unit,
+                "amount": instance.amounts.get(ingredient=ingredient).amount
+            }
+            data['ingredients'].append(ingredient_dict)
+        return data
