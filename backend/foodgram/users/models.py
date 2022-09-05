@@ -55,3 +55,29 @@ class User(AbstractUser):
 class AnonymousUserExtraFields(AnonymousUser):
     def is_admin(self):
         return False
+
+
+class Subscribe(models.Model):
+    subscriber = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriber',
+        verbose_name='Подписчик',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='content_author',
+        verbose_name='Автор контента',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'subscriber'],
+                name='unique_subscribe'
+            )
+        ]
+
+    def __str__(self):
+        return f' Подписки {self.subscriber}'

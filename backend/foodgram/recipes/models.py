@@ -104,3 +104,19 @@ class IngredientInRecipe(models.Model):
 
     # def __str__(self) -> str:
     #     return self.ingredient
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite'
+    )
+    favorite = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorite'
+    )
+
+    def __str__(self):
+        return f' Избранное {self.user}'
