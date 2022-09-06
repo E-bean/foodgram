@@ -130,3 +130,29 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f' Избранное {self.user}'
+
+
+class Shopping_cart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cart',
+        verbose_name='Пользователь',
+    )
+    purchase = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='cart',
+        verbose_name='Рецепт в списке покупок',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'purchase'],
+                name='unique_purchase'
+            )
+        ]
+
+    def __str__(self):
+        return f' Избранное {self.user}'

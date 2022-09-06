@@ -1,10 +1,11 @@
 import base64
+
 from django.core.files.base import ContentFile
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag, Favorite
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            Shopping_cart, Tag)
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from users.models import User, Subscribe
-from rest_framework.validators import UniqueTogetherValidator
+from users.models import Subscribe, User
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -78,11 +79,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     ingredients = IngredientSerializer(many=True,)
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('is_favorited',
-            'id', 'tags', 'author', 'ingredients', 'image',
-            'name', 'text', 'cooking_time',)
+        fields = ('is_favorited', 'is_in_shopping_cart',
+                  'id', 'tags', 'author', 'ingredients', 'image',
+                  'name', 'text', 'cooking_time',)
         model = Recipe
 
     def to_representation(self, instance):
@@ -108,6 +110,14 @@ class RecipeSerializer(serializers.ModelSerializer):
             return False
         else:
             return Favorite.objects.filter(user=user, favorite=obj).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        auth = self.context.get('request').auth
+        user = self.context.get('request').user
+        if not auth:
+            return False
+        else:
+            return Shopping_cart.objects.filter(user=user, purchase=obj).exists()
 
 
 class AmountSerializer(serializers.ModelSerializer):
@@ -234,7 +244,7 @@ class SubscribeSerialaizer(CustomUserSerializer):
             return Subscribe.objects.filter(subscriber=user, author=obj).exists()
 
 
-class FavoriteSerialaizer(serializers.ModelSerializer):
+class ShortRecipeSerialaizer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
