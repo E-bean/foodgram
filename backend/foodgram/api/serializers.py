@@ -1,6 +1,6 @@
 import base64
 from django.core.files.base import ContentFile
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
+from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag, Favorite
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from users.models import User, Subscribe
@@ -77,9 +77,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     image = Base64ImageField()
     ingredients = IngredientSerializer(many=True,)
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'tags', 'author', 'ingredients', 'image', 'name', 'text', 'cooking_time')
+        fields = ('is_favorited',
+            'id', 'tags', 'author', 'ingredients', 'image',
+            'name', 'text', 'cooking_time',)
         model = Recipe
 
     def to_representation(self, instance):
@@ -97,6 +100,14 @@ class RecipeSerializer(serializers.ModelSerializer):
             amount_list.append(i)
         representation['ingredients'] = amount_list
         return representation
+
+    def get_is_favorited(self, obj):
+        auth = self.context.get('request').auth
+        user = self.context.get('request').user
+        if not auth:
+            return False
+        else:
+            return Favorite.objects.filter(user=user, favorite=obj).exists()
 
 
 class AmountSerializer(serializers.ModelSerializer):
@@ -116,10 +127,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     image = Base64ImageField()
     ingredients = AmountSerializer(many=True,)
-
+    
     class Meta:
         fields = (
-            'id', 'tags','author', 'ingredients', 'image', 'name', 'text', 'cooking_time'
+            'id', 'tags', 'author', 'ingredients', 'image', 'name',
+            'text', 'cooking_time'
         )
         model = Recipe
 
@@ -220,3 +232,14 @@ class SubscribeSerialaizer(CustomUserSerializer):
             return False
         else:
             return Subscribe.objects.filter(subscriber=user, author=obj).exists()
+
+
+class FavoriteSerialaizer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )

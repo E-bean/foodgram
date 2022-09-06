@@ -2,9 +2,10 @@ from api.permissions import IsAdminOrSuperuserOrReadOnly
 from api.serializers import (IngredientSerializer, RecipeCreateSerializer,
                              RecipeSerializer, TagSerializer,
                              SubscribeSerialaizer,
-                             CustomUserSerializer)
+                             CustomUserSerializer,
+                             FavoriteSerialaizer)
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Ingredient, Recipe, Tag, Favorite
 from users.models import Subscribe, User
 from rest_framework import filters, permissions, viewsets, status, serializers
 from django.shortcuts import get_object_or_404, get_list_or_404
@@ -40,9 +41,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
+        if self.action == 'list' or 'retrieve':
+            return RecipeSerializer
         if self.action == 'create' or 'update':
             return RecipeCreateSerializer
-        return RecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(
@@ -58,9 +60,32 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["POST", "DELETE"],
         permission_classes=(permissions.IsAuthenticated,),
+        url_path='favorite'
     )
     def favorite(self, request, *args, **kwargs):
-        pass
+        recipe_id = kwargs.get("pk")
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        user = get_object_or_404(User, id=self.request.user.id)
+        if request.method == 'POST':
+            if Favorite.objects.filter(user=user, favorite=recipe).exists():
+                return Response(
+                    'Нельзя подписаться на самого себя.',
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            Favorite.objects.create(user=user, favorite=recipe)
+            serializer = FavoriteSerialaizer(
+                recipe,
+                context={'request': request},
+                many=False
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            favorite = get_object_or_404(
+                Favorite, user=user, favorite=recipe
+            )
+            favorite.delete()
+            return Response(
+                status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(DjoserUserViewSet):

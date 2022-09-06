@@ -31,8 +31,9 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author', 'tags')
     inlines = (IngredientsInLine, )
 
+
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = (
-        'user', 'favorite',
+        'user', 'favorite'
     )
