@@ -53,7 +53,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
         if not auth:
             return False
         else:
-            return Subscribe.objects.filter(subscriber=user, author=obj).exists()
+            return Subscribe.objects.filter(
+                subscriber=user, author=obj
+            ).exists()
 
 
 class UserForMeSerializer(CustomUserSerializer):
@@ -117,7 +119,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not auth:
             return False
         else:
-            return Shopping_cart.objects.filter(user=user, purchase=obj).exists()
+            return Shopping_cart.objects.filter(
+                user=user, purchase=obj
+            ).exists()
 
 
 class AmountSerializer(serializers.ModelSerializer):
@@ -137,7 +141,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     image = Base64ImageField()
     ingredients = AmountSerializer(many=True,)
-    
+
     class Meta:
         fields = (
             'id', 'tags', 'author', 'ingredients', 'image', 'name',
@@ -241,7 +245,9 @@ class SubscribeSerialaizer(CustomUserSerializer):
         if not auth:
             return False
         else:
-            return Subscribe.objects.filter(subscriber=user, author=obj).exists()
+            return Subscribe.objects.filter(
+                subscriber=user, author=obj
+            ).exists()
 
 
 class ShortRecipeSerialaizer(serializers.ModelSerializer):

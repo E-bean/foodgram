@@ -39,6 +39,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.order_by('id')
     serializer_class = RecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        user = self.request.user
+        is_favorited = self.request.query_params.get('is_favorited')
+        author_id = self.request.query_params.get('author')
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
+        tags = self.request.query_params.getlist('tags')
+        if is_favorited is not None:
+            queryset = Recipe.objects.filter(favorite__user=user).order_by('id')
+        if author_id is not None:
+            queryset = queryset.filter(author=author_id).order_by('id')
+        if is_in_shopping_cart is not None:
+            queryset = queryset.filter(cart__user=user).order_by('id')
+        if tags is not None:
+            for tag in tags:
+                tag_filter = Tag.objects.get(slug=tag)
+                queryset = queryset.filter(tags=tag_filter).order_by('id')
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'list' or 'retrieve':
@@ -55,6 +77,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(
             author=self.request.user,
             )
+
+    @action(
+        detail=False,
+        methods=["GET", ],
+        permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
+    )
+    def download_shopping_cart(self, request, *args, **kwargs):
+        
 
     @action(
         detail=True,
@@ -98,7 +128,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=recipe_id)
         user = get_object_or_404(User, id=self.request.user.id)
         if request.method == 'POST':
-            if Shopping_cart.objects.filter(user=user, purchase=recipe).exists():
+            if Shopping_cart.objects.filter(
+                user=user, purchase=recipe
+            ).exists():
                 return Response(
                     'Рецепт уже добавлен в корзину.',
                     status=status.HTTP_400_BAD_REQUEST
@@ -112,7 +144,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             try:
-                recipe_in_cart = Shopping_cart.objects.get(user=user, purchase=recipe)
+                recipe_in_cart = Shopping_cart.objects.get(
+                    user=user, purchase=recipe
+                )
             # recipe_in_cart = get_object_or_404(
             #     Shopping_cart, user=user, purchase=recipe
             # )
