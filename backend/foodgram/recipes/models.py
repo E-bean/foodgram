@@ -38,12 +38,12 @@ class Tag(models.Model):
         max_length=200,
     )
 
-    # def __str__(self):
-    #     return self.slug
-
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название',
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -101,9 +101,6 @@ class IngredientInRecipe(models.Model):
         verbose_name='Количество',
         validators=[MinValueValidator(1), ],
     )
-
-    # def __str__(self) -> str:
-    #     return self.ingredient
 
 
 class Favorite(models.Model):
