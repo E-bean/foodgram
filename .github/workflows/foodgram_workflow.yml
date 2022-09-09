@@ -57,6 +57,7 @@ jobs:
           script: |
             sudo docker compose stop
             sudo docker compose rm web
+            sudo docker compose stop nginx
             touch .env
             sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram:latest
