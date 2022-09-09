@@ -1,21 +1,22 @@
+from django.db import IntegrityError
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from api.pagination import CustomPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
                              ShortRecipeSerialaizer, SubscribeSerialaizer,
                              TagSerializer)
-from django.db import IntegrityError
-from django.http import FileResponse
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet as DjoserUserViewSet
 from foodgram.settings import MEDIA_ROOT
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             Shopping_cart, Tag)
-from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from users.models import Subscribe, User
 
 
@@ -78,13 +79,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Обработка запроса создания рецепта"""
         serializer.save(
             author=self.request.user,
-            )
+        )
 
     def perfome_update(self, serializer):
         """Обработка запроса обновления рецепта"""
         serializer.save(
             author=self.request.user,
-            )
+        )
 
     @action(
         detail=False,
@@ -115,8 +116,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 s = f'{i.name} ({i.measurement_unit}) - {shoppingcart[i]}'
                 print(s, file=file)
         return FileResponse(
-                open(f'{MEDIA_ROOT}/{filename}', 'rb')
-            )
+            open(f'{MEDIA_ROOT}/{filename}', 'rb')
+        )
 
     @action(
         detail=True,
@@ -142,7 +143,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 many=False
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
+        elif request.method == 'DELETE':
             if not Favorite.objects.filter(
                 user=user, favorite=recipe
             ).exists():
@@ -154,6 +155,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             favorite.delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(
         detail=True,
@@ -194,6 +198,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe_in_cart.delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -272,3 +279,6 @@ class UserViewSet(DjoserUserViewSet):
             subscribe.delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)

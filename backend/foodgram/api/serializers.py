@@ -2,10 +2,11 @@ import base64
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer
-from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            Shopping_cart, Tag)
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            Shopping_cart, Tag)
 from users.models import Subscribe, User
 
 
@@ -94,7 +95,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'name': ingredients[i].name,
                 'measurement_unit': ingredients[i].measurement_unit,
                 'amount': amount[i].amount
-                }
+            }
             amount_list.append(i)
         representation['ingredients'] = amount_list
         return representation

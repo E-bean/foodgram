@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.core import validators
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
 from users.validators import validate_username
 
 
