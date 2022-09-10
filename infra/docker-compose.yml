@@ -12,7 +12,7 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
+  backend:
     image: kirppu/foodgram:v1.1
     restart: always
     volumes:
@@ -28,21 +28,21 @@ services:
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
-      - web
+      - backend
   
   nginx:
     image: nginx:1.21.3-alpine
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
 
     depends_on:
-      - web
+      - backend
 
 volumes:
   postgres_data:
