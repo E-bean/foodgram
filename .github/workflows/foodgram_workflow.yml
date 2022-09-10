@@ -56,7 +56,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             sudo docker compose stop
-            sudo docker compose rm web
+            sudo docker compose rm backend
             touch .env
             sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram:latest
@@ -66,9 +66,9 @@ jobs:
             echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            sudo docker compose run web python manage.py migrate
-            sudo docker compose run web python manage.py collectstatic --no-input
-            sudo docker compose run web python manage.py filldb
+            sudo docker compose run backend python manage.py migrate
+            sudo docker compose run backend manage.py collectstatic --no-input
+            sudo docker compose run backend python manage.py filldb
             sudo docker compose up -d
 
   send_message:
