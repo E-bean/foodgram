@@ -21,5 +21,5 @@ def fill_ingredient_data(path):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        fill_ingredient_data("../../data/ingredients.csv")
+        fill_ingredient_data("data/ingredients.csv")
         print("fixtures added to DB")

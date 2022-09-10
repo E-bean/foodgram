@@ -3,11 +3,12 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.filter import IngredientSearchFilter
 from api.pagination import CustomPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
@@ -33,8 +34,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для обработки ингредиентов"""
     queryset = Ingredient.objects.order_by('id')
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = [IngredientSearchFilter]
+    search_fields = ("^name",)
     pagination_class = None
 
 
