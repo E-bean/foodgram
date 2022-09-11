@@ -48,9 +48,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     def is_admin(self):
-        if self.role == "admin":
-            return True
-        return False
+        return self.role == "admin"
 
 
 class AnonymousUserExtraFields(AnonymousUser):

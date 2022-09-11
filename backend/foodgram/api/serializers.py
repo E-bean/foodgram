@@ -56,12 +56,9 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         auth = self.context.get('request').auth
         user = self.context.get('request').user
-        if not auth:
-            return False
-        else:
-            return Subscribe.objects.filter(
-                subscriber=user, author=obj
-            ).exists()
+        return auth and Subscribe.objects.filter(
+            subscriber=user, author=obj
+        ).exists()
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -104,10 +101,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Добавление рецепта в избранное"""
         auth = self.context.get('request').auth
         user = self.context.get('request').user
-        if not auth:
-            return False
-        else:
-            return Favorite.objects.filter(user=user, favorite=obj).exists()
+        return auth and Favorite.objects.filter(
+            user=user, favorite=obj
+        ).exists()
 
     def get_is_in_shopping_cart(self, obj):
         """Добавление рецепта в список покупок"""
@@ -244,12 +240,9 @@ class SubscribeSerialaizer(CustomUserSerializer):
         """Получение поля наличия подписки"""
         auth = self.context.get('request').auth
         user = self.context.get('request').user
-        if not auth:
-            return False
-        else:
-            return Subscribe.objects.filter(
-                subscriber=user, author=obj
-            ).exists()
+        return auth and Subscribe.objects.filter(
+            subscriber=user, author=obj
+        ).exists()
 
 
 class ShortRecipeSerialaizer(serializers.ModelSerializer):

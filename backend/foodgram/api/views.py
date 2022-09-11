@@ -41,14 +41,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки рецептов"""
-    queryset = Recipe.objects.order_by('id')
+    queryset = Recipe.objects.order_by('-pub_date')
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = CustomPagination
 
     def get_queryset(self):
         """Получение списка объектов"""
-        queryset = Recipe.objects.all().order_by('id')
+        queryset = Recipe.objects.all().order_by('-pub_date')
         user = self.request.user
         is_favorited = self.request.query_params.get('is_favorited')
         author_id = self.request.query_params.get('author')
@@ -61,13 +61,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 favorite__user=user
             ).order_by('id')
         if author_id is not None:
-            queryset = queryset.filter(author=author_id).order_by('id')
+            queryset = queryset.filter(author=author_id).order_by('-pub_date')
         if is_in_shopping_cart is not None:
-            queryset = queryset.filter(cart__user=user).order_by('id')
-        if tags is not None:
-            for tag in tags:
-                tag_filter = Tag.objects.get(slug=tag)
-                queryset = queryset.filter(tags=tag_filter).order_by('id')
+            queryset = queryset.filter(cart__user=user).order_by('-pub_date')
+        if len(tags) > 0:
+            queryset = queryset.filter(
+                tags__slug__in=tags
+            ).distinct()
         return queryset
 
     def get_serializer_class(self):
@@ -97,7 +97,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Скачивание файла покупок"""
         queryset = Recipe.objects.all()
         user = request.user
-        queryset = queryset.filter(cart__user=user).order_by('id')
+        queryset = queryset.filter(cart__user=user).order_by('-pub_date')
         shoppingcart = {}
         for recipe in queryset:
             ingredients = Ingredient.objects.all().filter(recipes=recipe)
@@ -114,8 +114,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         filename = f'{username}.txt'
         with open(f'{MEDIA_ROOT}/{filename}', 'w', encoding="utf-8") as file:
             for i in shoppingcart.keys():
-                s = f'{i.name} ({i.measurement_unit}) - {shoppingcart[i]}'
-                print(s, file=file)
+                s = f'{i.name} ({i.measurement_unit}) - {shoppingcart[i]}\n'
+                file.write(s)
         return FileResponse(
             open(f'{MEDIA_ROOT}/{filename}', 'rb')
         )
@@ -156,9 +156,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             favorite.delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(
         detail=True,
@@ -199,9 +196,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe_in_cart.delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -280,6 +274,3 @@ class UserViewSet(DjoserUserViewSet):
             subscribe.delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
