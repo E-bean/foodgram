@@ -15,36 +15,48 @@ Nginx
 
 ## Как запустить проект:
 
-Клонировать репозиторий с Docker Hub:
+Шаблон наполнения env-файла:
+```
+DB_NAME='postgres' # имя базы данных
+
+
+POSTGRES_USER='postgres' # логин для подключения к базе данных
+
+
+POSTGRES_PASSWORD='postgres' # пароль для подключения к БД
+
+
+DB_HOST='db' # название сервиса (контейнера)
+
+
+DB_PORT='5432' # порт для подключения к БД
+```
+
+Перейти в папку infra:
 
 ```
-docker pull kirppu/foodgram:latest
+cd infra/
 ```
 
-Создать и запустить контейнеры:
+Запустить контейнеры:
 
 ```
-docker run foodgram
+docker compose up -d
 ```
 
 Выполните миграции:
 
 ```
-docker-compose exec web python manage.py migrate
+docker compose exec backend python manage.py migrate
 ```
 Для создания суперпользователя введите:
 
 ```
-docker-compose exec web python manage.py createsuperuser
+docker compose exec backend python manage.py createsuperuser
 ```
 
 Запустите команду для сбора статики:
 
 ```
-docker-compose exec web python manage.py collectstatic --no-input
-```
-Команда для загрузки базы данных из дампа:
-
-```
-docker-compose exec web python manage.py loaddata dump.json
+docker compose exec backend python manage.py collectstatic --no-input
 ```
