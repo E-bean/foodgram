@@ -35,7 +35,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.order_by('id')
     serializer_class = IngredientSerializer
     filter_backends = [IngredientSearchFilter]
-    search_fields = ("^name",)
+    search_fields = ("^name",) 
     pagination_class = None
 
 
@@ -117,7 +117,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 s = f'{i.name} ({i.measurement_unit}) - {shoppingcart[i]}\n'
                 file.write(s)
         return FileResponse(
-            open(f'{MEDIA_ROOT}/{filename}', 'rb')
+            open(f'{MEDIA_ROOT}/{filename}', 'rb', filename=filename)
         )
 
     @action(
