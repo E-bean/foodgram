@@ -116,7 +116,7 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 LANGUAGE_CODE = "ru-ru"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'UTC+3'
 
 USE_I18N = True
 
