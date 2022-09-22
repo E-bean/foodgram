@@ -1,3 +1,4 @@
+![foodgram_workflow](https://github.com/E-bean/foodgram/actions/workflows/foodgram_workflow.yml/badge.svg)
 # Foodgram - Продуктовый помощник
 
 ## Описание:
