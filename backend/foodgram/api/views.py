@@ -117,7 +117,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 s = f'{i.name} ({i.measurement_unit}) - {shoppingcart[i]}\n'
                 file.write(s)
         return FileResponse(
-            open(f'{MEDIA_ROOT}/{filename}', 'rb', filename=filename)
+            open(f'{MEDIA_ROOT}/{filename}', 'rb'),
+            filename=filename
         )
 
     @action(
